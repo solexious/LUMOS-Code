@@ -161,6 +161,14 @@ void loop()
 void beat() {
   // Check battery voltage level for turn off
   int adcRead = analogRead(A0);
+
+  // Send heartbeat packet
+  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
+  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead);
+  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
+  UdpSend.endPacket();
+
+  // Act on voltage reads
   if(adcRead <= minLEDVoltage){
     ledsEnabled = false;
     analogWrite(pinR, 0);
@@ -206,12 +214,6 @@ void beat() {
     strip.show();
   }
   clearBlinkTick.attach(0.1, clearBlink);
-
-  // Send heartbeat packet
-  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
-  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead);
-  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
-  UdpSend.endPacket();
 }
 
 void clearBlink(){
