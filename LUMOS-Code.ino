@@ -41,6 +41,7 @@ uint8_t DMXBuffer[DMX_MAX];
 char udpBeatPacket[70];
 char nodeName[15];
 uint8_t mac[6];
+bool shuttingdown = false;
 
 // Lib
 Ticker ticker;
@@ -147,7 +148,37 @@ void loop()
       Serial.println("Art Poll Packet");
     }
   }
-  if (WiFi.status() != WL_CONNECTED) {
+  if(shuttingdown){
+    Serial.print("Danger voltage, deep sleeping forever");
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    Serial.println(".");
+    ESP.deepSleep(0);
+    while(true){}
+  }
+  else if ((WiFi.status() != WL_CONNECTED) && (!shuttingdown)) {
     // Lost wifi connection, reset to reconnect
     strip.setPixelColor(0, strip.Color(100, 0, 0));
     strip.show();
@@ -177,31 +208,7 @@ void beat() {
   }
   if(adcRead <= minSelfVoltage){
     // TODO - Put self into sleep mode and send alert packets
-    Serial.println("Danger voltage, deep sleeping forever");
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
-    delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
-    ESP.deepSleep(0);
+    shuttingdown = true;
   }
   
   // Turn on status led for blink
