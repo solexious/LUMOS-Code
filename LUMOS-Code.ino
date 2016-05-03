@@ -69,7 +69,7 @@ void setup()
   // Force wifi connection portal or attempt to connect
   if (!digitalRead(btnPin)) {
     // Force AP mode with captive portal for wifi setup
-    strip.setPixelColor(0, strip.Color(50, 0, 50));
+    strip.setPixelColor(0, strip.Color(100, 0, 100));
     strip.show();
     WiFiManager wifiManager;
     wifiManager.startConfigPortal(nodeName);
@@ -79,16 +79,17 @@ void setup()
   }
   else {
     // Try to connect with existing wifi settings
-    strip.setPixelColor(0, strip.Color(0, 0, 50));
+    strip.setPixelColor(0, strip.Color(0, 0, 100));
     strip.show();
     WiFiManager wifiManager;
     // Add callback to change status neopixel to orange if connection fails and we enter AP mode
     wifiManager.setAPCallback(configModeCallback);
+    wifiManager.setConfigPortalTimeout(180);
     // Attempt connection
     if (!wifiManager.autoConnect(nodeName)) {
       Serial.println("failed to connect and hit timeout");
       // Reset and try again
-      strip.setPixelColor(0, strip.Color(50, 0, 0));
+      strip.setPixelColor(0, strip.Color(100, 0, 0));
       strip.show();
       delay(1000);
       strip.setPixelColor(0, strip.Color(0, 0, 0));
@@ -110,7 +111,7 @@ void setup()
   artnetnode.setDMXOutput(0, 1, 0);
 
   // Connected and happy, flash green
-  strip.setPixelColor(0, strip.Color(0, 50, 0));
+  strip.setPixelColor(0, strip.Color(0, 100, 0));
   strip.show();
   delay(1000);
   strip.setPixelColor(0, strip.Color(0, 0, 0));
@@ -142,6 +143,10 @@ void loop()
   }
   if (WiFi.status() != WL_CONNECTED) {
     // Lost wifi connection, reset to reconnect
+    strip.setPixelColor(0, strip.Color(100, 0, 0));
+    strip.show();
+    Serial.print("Connection Lost, restarting");
+    delay(2000);
     ESP.reset();
     delay(1000);
   }
@@ -161,6 +166,6 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   //if you used auto generated SSID, print it
   Serial.println(myWiFiManager->getConfigPortalSSID());
   // Change status led
-  strip.setPixelColor(0, strip.Color(50, 50, 0));
+  strip.setPixelColor(0, strip.Color(100, 100, 0));
   strip.show();
 }
