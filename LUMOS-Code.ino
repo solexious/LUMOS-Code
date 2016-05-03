@@ -16,6 +16,9 @@
 //int pinB = 5;
 //int onboardNeopixelPin = 13;
 //int btnPin = 16;
+//
+//int minLEDVoltage = 745;
+//int minSelfVoltage = 690;
 
 // Pin Settings - Tester
 int pinR = 15;
@@ -23,6 +26,9 @@ int pinG = 12;
 int pinB = 13;
 int onboardNeopixelPin = 4;
 int btnPin = 16;
+
+int minLEDVoltage = 745;
+int minSelfVoltage = 690;
 
 // Temp - FIXME
 char* ssid = "LUMOS";
@@ -132,8 +138,7 @@ void loop()
 {
   uint16_t code = artnetnode.read();
   if (code) {
-    if (code == OpDmx)
-    {
+    if ((code == OpDmx) && (ledsEnabled)){
       analogWrite(pinR, artnetnode.returnDMXValue(0, 1));
       analogWrite(pinG, artnetnode.returnDMXValue(0, 2));
       analogWrite(pinB, artnetnode.returnDMXValue(0, 3));
@@ -154,11 +159,43 @@ void loop()
 }
 
 void beat() {
-  // Send heartbeat packet
-  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
-  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], analogRead(A0));
-  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
-  UdpSend.endPacket();
+  // Check battery voltage level for turn off
+  int adcRead = analogRead(A0);
+  if(adcRead <= minLEDVoltage){
+    ledsEnabled = false;
+    analogWrite(pinR, 0);
+    analogWrite(pinG, 0);
+    analogWrite(pinB, 0);
+  }
+  if(adcRead <= minSelfVoltage){
+    // TODO - Put self into sleep mode and send alert packets
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+    delay(200);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    ESP.deepSleep(0);
+  }
+  
+  // Turn on status led for blink
   if(ledsEnabled){
     strip.setPixelColor(0, strip.Color(0, 50, 0));
     strip.show();
@@ -168,6 +205,12 @@ void beat() {
     strip.show();
   }
   clearBlinkTick.attach(0.1, clearBlink);
+
+  // Send heartbeat packet
+  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
+  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead);
+  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
+  UdpSend.endPacket();
 }
 
 void clearBlink(){
