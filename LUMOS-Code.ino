@@ -169,6 +169,7 @@ void beat() {
   }
   if(adcRead <= minSelfVoltage){
     // TODO - Put self into sleep mode and send alert packets
+    Serial.println("Danger voltage, deep sleeping forever");
     strip.setPixelColor(0, strip.Color(50, 0, 0));
     strip.show();
     delay(200);
