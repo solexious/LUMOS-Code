@@ -38,6 +38,7 @@ uint8_t mac[6];
 
 // Lib
 Ticker ticker;
+Ticker clearBlinkTick;
 WiFiUDP UdpSend;
 Artnetnode artnetnode;
 IPAddress localIP;
@@ -158,6 +159,21 @@ void beat() {
   sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], analogRead(A0));
   UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
   UdpSend.endPacket();
+  if(ledsEnabled){
+    strip.setPixelColor(0, strip.Color(0, 50, 0));
+    strip.show();
+  }
+  else{
+    strip.setPixelColor(0, strip.Color(50, 0, 0));
+    strip.show();
+  }
+  clearBlinkTick.attach(0.1, clearBlink);
+}
+
+void clearBlink(){
+  strip.setPixelColor(0, strip.Color(0, 0, 0));
+  strip.show();
+  clearBlinkTick.detach();
 }
 
 void configModeCallback (WiFiManager *myWiFiManager) {
