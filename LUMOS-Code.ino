@@ -10,29 +10,36 @@
 #include <avr/power.h>
 #endif
 
-//// Pin Settings - LUMOS
-//int pinR = 15;
-//int pinG = 4;
-//int pinB = 5;
-//int onboardNeopixelPin = 13;
-//int btnPin = 16;
+//// Pin Settings - LUMOS v0.1
+//int pinR = 13;
+//int pinG = 12;
+//int pinB = 14;
+//int onboardNeopixelPin = 5;
+//int btnPin = 4;
 //
 //int minLEDVoltage = 745;
 //int minSelfVoltage = 690;
 
-// Pin Settings - Tester
+
+// Pin Settings - LUMOS v0.2
 int pinR = 15;
-int pinG = 12;
-int pinB = 13;
-int onboardNeopixelPin = 4;
+int pinG = 5;
+int pinB = 4;
+int onboardNeopixelPin = 13;
 int btnPin = 16;
 
 int minLEDVoltage = 745;
 int minSelfVoltage = 690;
 
-// Temp - FIXME
-char* ssid = "LUMOS";
-char* password = "2784B508";
+// Pin Settings - Tester
+//int pinR = 15;
+//int pinG = 12;
+//int pinB = 13;
+//int onboardNeopixelPin = 4;
+//int btnPin = 16;
+//
+//int minLEDVoltage = 745;
+//int minSelfVoltage = 690;
 
 // Globals
 bool ledsEnabled = true;
