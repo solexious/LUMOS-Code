@@ -10,7 +10,10 @@
 #include <avr/power.h>
 #endif
 
+char swVersion[] = "0.1";
+
 //// Pin Settings - LUMOS v0.1
+//char hwVersion[] = "0.1";
 //int pinR = 13;
 //int pinG = 12;
 //int pinB = 14;
@@ -22,6 +25,7 @@
 
 
 // Pin Settings - LUMOS v0.2
+char hwVersion[] = "0.2";
 int pinR = 15;
 int pinG = 5;
 int pinB = 4;
@@ -32,6 +36,7 @@ int minLEDVoltage = 745;
 int minSelfVoltage = 690;
 
 // Pin Settings - Tester
+//char hwVersion[] = "tester";
 //int pinR = 15;
 //int pinG = 12;
 //int pinB = 13;
@@ -45,8 +50,8 @@ int minSelfVoltage = 690;
 bool ledsEnabled = true;
 #define DMX_MAX 512 // max. number of DMX data packages.
 uint8_t DMXBuffer[DMX_MAX];
-char udpBeatPacketStart[141];
-char udpBeatPacket[141];
+char udpBeatPacketStart[185];
+char udpBeatPacket[185];
 char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
@@ -142,8 +147,8 @@ void setup()
   // Setup heartbeat packet
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
-  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
-      nodeName, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
+  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"hw_version\":\"%s\",\"sw_version\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
+      nodeName, hwVersion, swVersion, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
 }
