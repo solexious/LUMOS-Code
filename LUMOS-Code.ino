@@ -45,8 +45,8 @@ int minSelfVoltage = 690;
 bool ledsEnabled = true;
 #define DMX_MAX 512 // max. number of DMX data packages.
 uint8_t DMXBuffer[DMX_MAX];
-char udpBeatPacketStart[116];
-char udpBeatPacket[116];
+char udpBeatPacketStart[141];
+char udpBeatPacket[141];
 char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
@@ -66,7 +66,7 @@ void setup()
   // Initial setup
   Serial.begin(9600);
   WiFi.macAddress(mac);
-  sprintf(nodeName, "LUMOS-%X%X%X", mac[3], mac[4], mac[5]);
+  sprintf(nodeName, "LUMOS-%02X%02X%02X", mac[3], mac[4], mac[5]);
 
   // Pin setup
   pinMode(pinR, OUTPUT);
@@ -142,7 +142,7 @@ void setup()
   // Setup heartbeat packet
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
-  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d}",
+  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
       nodeName, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
@@ -208,12 +208,6 @@ void beat() {
   batteryLog();
   int adcRead = analogRead(A0);
 
-  // Send heartbeat packet
-  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
-  sprintf(udpBeatPacket, udpBeatPacketStart, adcRead, lowestBattery);
-  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
-  UdpSend.endPacket();
-
   if (!digitalRead(btnPin)) {
     // Lets toggle the enabled state
     ledsEnabled = !ledsEnabled;
@@ -231,6 +225,11 @@ void beat() {
     shuttingdown = true;
   }
 
+  // Send heartbeat packet
+  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
+  sprintf(udpBeatPacket, udpBeatPacketStart, adcRead, lowestBattery, ledsEnabled ? "true" : "false");
+  UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
+  UdpSend.endPacket();
 
   // Turn on status led for blink
   if (ledsEnabled) {
