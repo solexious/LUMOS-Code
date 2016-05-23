@@ -49,6 +49,7 @@ char udpBeatPacket[70];
 char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
+int lowestBattery = 0;
 
 // Lib
 Ticker ticker;
@@ -146,16 +147,17 @@ void loop()
 {
   uint16_t code = artnetnode.read();
   if (code) {
-    if ((code == OpDmx) && (ledsEnabled)){
+    if ((code == OpDmx) && (ledsEnabled)) {
       analogWrite(pinR, artnetnode.returnDMXValue(0, 1));
       analogWrite(pinG, artnetnode.returnDMXValue(0, 2));
       analogWrite(pinB, artnetnode.returnDMXValue(0, 3));
+      batteryLog();
     }
     else if (code == OpPoll) {
       Serial.println("Art Poll Packet");
     }
   }
-  if(shuttingdown){
+  if (shuttingdown) {
     Serial.print("Danger voltage, deep sleeping forever");
     strip.setPixelColor(0, strip.Color(50, 0, 0));
     strip.show();
@@ -183,7 +185,7 @@ void loop()
     delay(200);
     Serial.println(".");
     ESP.deepSleep(0);
-    while(true){}
+    while (true) {}
   }
   else if ((WiFi.status() != WL_CONNECTED) && (!shuttingdown)) {
     // Lost wifi connection, reset to reconnect
@@ -198,39 +200,47 @@ void loop()
 
 void beat() {
   // Check battery voltage level for turn off
+  batteryLog();
   int adcRead = analogRead(A0);
 
   // Send heartbeat packet
   UdpSend.beginPacket({192, 168, 0, 100}, 33333);
-  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"voltage\":%d}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead);
+  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%d,\"lowest_voltage:%d}",
+      mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead, lowestBattery);
   UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
   UdpSend.endPacket();
 
+  if (!digitalRead(btnPin)) {
+    // Lets toggle the enabled state
+    ledsEnabled = !ledsEnabled;
+  }
+
   // Act on voltage reads
-  if(adcRead <= minLEDVoltage){
+  if ((adcRead <= minLEDVoltage) || (!ledsEnabled)) {
     ledsEnabled = false;
     analogWrite(pinR, 0);
     analogWrite(pinG, 0);
     analogWrite(pinB, 0);
   }
-  if(adcRead <= minSelfVoltage){
+  if (adcRead <= minSelfVoltage) {
     // TODO - Put self into sleep mode and send alert packets
     shuttingdown = true;
   }
-  
+
+
   // Turn on status led for blink
-  if(ledsEnabled){
+  if (ledsEnabled) {
     strip.setPixelColor(0, strip.Color(0, 50, 0));
     strip.show();
   }
-  else{
+  else {
     strip.setPixelColor(0, strip.Color(50, 0, 0));
     strip.show();
   }
   clearBlinkTick.attach(0.1, clearBlink);
 }
 
-void clearBlink(){
+void clearBlink() {
   strip.setPixelColor(0, strip.Color(0, 0, 0));
   strip.show();
   clearBlinkTick.detach();
@@ -245,3 +255,11 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   strip.setPixelColor(0, strip.Color(100, 100, 0));
   strip.show();
 }
+
+void batteryLog() {
+  int check = analogRead(A0);
+  if (check < lowestBattery) {
+    lowestBattery = check;
+  }
+}
+
