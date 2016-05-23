@@ -45,7 +45,8 @@ int minSelfVoltage = 690;
 bool ledsEnabled = true;
 #define DMX_MAX 512 // max. number of DMX data packages.
 uint8_t DMXBuffer[DMX_MAX];
-char udpBeatPacket[70];
+char udpBeatPacketStart[116];
+char udpBeatPacket[116];
 char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
@@ -77,6 +78,8 @@ void setup()
   analogWrite(pinR, 0);
   analogWrite(pinG, 0);
   analogWrite(pinB, 0);
+
+  lowestBattery = analogRead(A0);
 
   // Status neopixel setup
   strip.begin();
@@ -139,6 +142,8 @@ void setup()
   // Setup heartbeat packet
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
+  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d}",
+      nodeName, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
 }
@@ -205,8 +210,7 @@ void beat() {
 
   // Send heartbeat packet
   UdpSend.beginPacket({192, 168, 0, 100}, 33333);
-  sprintf(udpBeatPacket, "{\"mac\":\"%x:%x:%x:%x:%x:%x\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%d,\"lowest_voltage:%d}",
-      mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3], adcRead, lowestBattery);
+  sprintf(udpBeatPacket, udpBeatPacketStart, adcRead, lowestBattery);
   UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
   UdpSend.endPacket();
 
