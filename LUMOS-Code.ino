@@ -1,4 +1,5 @@
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>
@@ -56,6 +57,8 @@ char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
 int lowestBattery = 0;
+const char* www_username = "admin";
+const char* www_password = "esp8266";
 
 // Lib
 Ticker ticker;
@@ -64,6 +67,7 @@ WiFiUDP UdpSend;
 Artnetnode artnetnode;
 IPAddress localIP;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, onboardNeopixelPin, NEO_GRB + NEO_KHZ800);
+ESP8266WebServer server(80);
 
 
 void setup()
@@ -148,13 +152,73 @@ void setup()
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
   sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"hw_version\":\"%s\",\"sw_version\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
-      nodeName, hwVersion, swVersion, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
+          nodeName, hwVersion, swVersion, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
+
+  // Setup webserver
+  server.on("/", []() {
+    if (!server.authenticate(www_username, www_password)) {
+      return server.requestAuthentication();
+    }
+    server.send(200, "text/plain", "Login OK");
+  });
+  server.on("/update", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.send(200, "text/plain", (Update.hasError()) ? "FAIL\n" : "OK\n");
+    ESP.restart();
+  }, []() {
+    // Check password
+    if (!server.authenticate(www_username, www_password)) {
+      return server.requestAuthentication();
+    }
+
+    // Stop beating
+    ticker.detach();
+
+    // Turn us green/blue
+    strip.setPixelColor(0, strip.Color(100, 0, 100));
+    strip.show();
+
+    // Turn off led output
+    analogWrite(pinR, 0);
+    analogWrite(pinG, 0);
+    analogWrite(pinB, 0);
+    ledsEnabled = false;
+    
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.setDebugOutput(true);
+      WiFiUDP::stopAll();
+      Serial.printf("Update: %s\n", upload.filename.c_str());
+      uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+      if (!Update.begin(maxSketchSpace)) { //start with max available size
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) { //true to set the size to the current progress
+        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+      Serial.setDebugOutput(false);
+    }
+    yield();
+  });
+  server.begin();
 }
 
 void loop()
 {
+  // Handle webserver
+  server.handleClient();
+
+  // Handle artnet
   uint16_t code = artnetnode.read();
   if (code) {
     if ((code == OpDmx) && (ledsEnabled)) {
