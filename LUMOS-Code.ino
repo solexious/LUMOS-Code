@@ -138,7 +138,7 @@ void setup()
   server.on("/update", HTTP_POST, []() {
     server.sendHeader("Connection", "close");
     server.sendHeader("Access-Control-Allow-Origin", "*");
-    server.send(200, "text/plain", (Update.hasError()) ? "FAIL\n" : "OK\n");
+    server.send(200, "text/plain", nodeName + " - " + ((Update.hasError()) ? "FAIL\n" : "OK\n"));
     ESP.restart();
   }, []() {
     // Check password
