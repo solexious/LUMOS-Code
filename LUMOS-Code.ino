@@ -1,3 +1,4 @@
+#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <DNSServer.h>
@@ -6,46 +7,14 @@
 #include <WiFiUdp.h>
 #include <Artnetnode.h>
 #include <Ticker.h>
+#include "FS.h"
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
+#include "config.h"
 
-char swVersion[] = "0.1";
-
-//// Pin Settings - LUMOS v0.1
-//char hwVersion[] = "0.1";
-//int pinR = 13;
-//int pinG = 12;
-//int pinB = 14;
-//int onboardNeopixelPin = 5;
-//int btnPin = 4;
-//
-//int minLEDVoltage = 745;
-//int minSelfVoltage = 690;
-
-
-// Pin Settings - LUMOS v0.2
-char hwVersion[] = "0.2";
-int pinR = 15;
-int pinG = 5;
-int pinB = 4;
-int onboardNeopixelPin = 13;
-int btnPin = 16;
-
-int minLEDVoltage = 745;
-int minSelfVoltage = 690;
-
-// Pin Settings - Tester
-//char hwVersion[] = "tester";
-//int pinR = 15;
-//int pinG = 12;
-//int pinB = 13;
-//int onboardNeopixelPin = 4;
-//int btnPin = 16;
-//
-//int minLEDVoltage = 745;
-//int minSelfVoltage = 690;
+#define DATA_JSON_SIZE (JSON_OBJECT_SIZE(12))
 
 // Globals
 bool ledsEnabled = true;
@@ -53,12 +22,10 @@ bool ledsEnabled = true;
 uint8_t DMXBuffer[DMX_MAX];
 char udpBeatPacketStart[185];
 char udpBeatPacket[185];
-char nodeName[15];
 uint8_t mac[6];
 bool shuttingdown = false;
 int lowestBattery = 0;
-const char* www_username = "admin";
-const char* www_password = "esp8266";
+//void getConfigJSON();
 
 // Lib
 Ticker ticker;
@@ -66,8 +33,10 @@ Ticker clearBlinkTick;
 WiFiUDP UdpSend;
 Artnetnode artnetnode;
 IPAddress localIP;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, onboardNeopixelPin, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, setting.onboardNeopixelPin, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, 13, NEO_GRB + NEO_KHZ800);
 ESP8266WebServer server(80);
+
 
 
 void setup()
@@ -75,7 +44,10 @@ void setup()
   // Initial setup
   Serial.begin(9600);
   WiFi.macAddress(mac);
-  sprintf(nodeName, "LUMOS-%02X%02X%02X", mac[3], mac[4], mac[5]);
+  char nodeName2[15];
+  sprintf(nodeName2, "LUMOS-%02X%02X%02X", mac[3], mac[4], mac[5]);
+  nodeName = (String)nodeName2;
+  getConfigJSON();
 
   // Pin setup
   pinMode(pinR, OUTPUT);
@@ -100,7 +72,7 @@ void setup()
     strip.setPixelColor(0, strip.Color(100, 0, 100));
     strip.show();
     WiFiManager wifiManager;
-    wifiManager.startConfigPortal(nodeName);
+    wifiManager.startConfigPortal(nodeName.c_str());
     // Reset to use new settings
     ESP.reset();
     delay(1000);
@@ -114,7 +86,7 @@ void setup()
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setConfigPortalTimeout(180);
     // Attempt connection
-    if (!wifiManager.autoConnect(nodeName)) {
+    if (!wifiManager.autoConnect(nodeName.c_str())) {
       Serial.println("failed to connect and hit timeout");
       // Reset and try again
       strip.setPixelColor(0, strip.Color(100, 0, 0));
@@ -129,7 +101,7 @@ void setup()
 
 
   // Start up artnetnode library
-  artnetnode.setName(nodeName);
+  artnetnode.setName((char*)nodeName.c_str());
   artnetnode.setStartingUniverse(1);
   while (artnetnode.begin(1) == false) {
     Serial.print("X");
@@ -152,13 +124,13 @@ void setup()
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
   sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"hw_version\":\"%s\",\"sw_version\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
-          nodeName, hwVersion, swVersion, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
+          nodeName.c_str(), hwVersion.c_str(), swVersion.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
 
   // Setup webserver
   server.on("/", []() {
-    if (!server.authenticate(www_username, www_password)) {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
     }
     server.send(200, "text/plain", "Login OK");
@@ -170,7 +142,7 @@ void setup()
     ESP.restart();
   }, []() {
     // Check password
-    if (!server.authenticate(www_username, www_password)) {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
     }
 
@@ -186,12 +158,13 @@ void setup()
     analogWrite(pinG, 0);
     analogWrite(pinB, 0);
     ledsEnabled = false;
-    
+
     HTTPUpload& upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
       Serial.setDebugOutput(true);
       WiFiUDP::stopAll();
-      Serial.printf("Update: %s\n", upload.filename.c_str());
+      Serial.print("Update: ");
+      Serial.println(upload.filename);
       uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
       if (!Update.begin(maxSketchSpace)) { //start with max available size
         Update.printError(Serial);
@@ -333,5 +306,93 @@ void batteryLog() {
   if (check < lowestBattery) {
     lowestBattery = check;
   }
+}
+
+bool getConfigJSON() {
+  // Check if config file exists
+  SPIFFS.begin();
+  File configJSONfile = SPIFFS.open("/config.json", "r");
+  if (!configJSONfile) {
+    // Doesn't exist, create it
+    Serial.println("json not found");
+    defaultConfigJSON();
+    configJSONfile = SPIFFS.open("/config.json", "r");
+  }
+  if (configJSONfile) {
+    Serial.println("found the file");
+    String jsonText = configJSONfile.readString();
+    // Now we have either a new config or existing, load it into json parser
+    DynamicJsonBuffer configJSON;
+    JsonObject& configJSONroot = configJSON.parseObject(jsonText);
+
+    Serial.println(jsonText);
+
+    const char* swVersionConst = configJSONroot["swVersion"];
+    String swVersionConstStr = (String)swVersionConst;
+
+//    Serial.println(swVersion);
+//    Serial.println(sizeof(swVersion));
+//    Serial.println(swVersionJSON);
+//    Serial.println(sizeof(swVersionJSON));
+
+    if (!swVersionConstStr.equals(swVersion)) {
+      Serial.println("check failed");
+      // Out of date config file, update it!
+      // Close the file and remove
+      configJSONfile.close();
+      SPIFFS.remove("/config.json");
+      // Create new default
+      defaultConfigJSON();
+
+    }
+    
+    const char* nodeNameConst = configJSONroot["nodeName"];
+    nodeName = (String)nodeNameConst;
+    const char* hwVersionConst = configJSONroot["hwVersion"];
+    hwVersion = (String)hwVersionConst;
+    //const char* swVersionConst = configJSONroot["swVersion"];
+    swVersion = (String)swVersionConst;
+    pinR = configJSONroot["pinR"];
+    pinG = configJSONroot["pinG"];
+    pinB = configJSONroot["pinB"];
+    onboardNeopixelPin = configJSONroot["onboardNeopixelPin"];
+    btnPin = configJSONroot["btnPin"];
+    minLEDVoltage = configJSONroot["minLEDVoltage"];
+    minSelfVoltage = configJSONroot["minSelfVoltage"];
+    const char* www_usernameConst = configJSONroot["www_username"];
+    www_username = (String)www_usernameConst;
+    const char* www_passwordConst = configJSONroot["www_password"];
+    www_password = (String)www_passwordConst;
+
+    return configJSONroot.success();
+  }
+  else {
+    Serial.println("didn't find the file");
+    return false;
+  }
+}
+
+void defaultConfigJSON() {
+  // Take the default and save to file
+  Serial.println("making new config json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+
+  root["nodeName"] = (const char*)nodeName.c_str();
+  root["hwVersion"] = (const char*)hwVersion.c_str();
+  root["swVersion"] = (const char*)swVersion.c_str();
+  root["pinR"] = pinR;
+  root["pinG"] = pinG;
+  root["pinB"] = pinB;
+  root["onboardNeopixelPin"] = onboardNeopixelPin;
+  root["btnPin"] = btnPin;
+  root["minLEDVoltage"] = minLEDVoltage;
+  root["minSelfVoltage"] = minSelfVoltage;
+  root["www_username"] = (const char*)www_username.c_str();
+  root["www_password"] = (const char*)www_password.c_str();
+
+  File configJSONfile = SPIFFS.open("/config.json", "w+");
+  root.printTo(configJSONfile);
+  configJSONfile.close();
 }
 
