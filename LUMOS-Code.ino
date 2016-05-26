@@ -135,6 +135,64 @@ void setup()
     }
     server.send(200, "text/plain", "Login OK");
   });
+  server.on("/findme", []() {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
+      return server.requestAuthentication();
+    }
+    server.sendHeader("Location", String("/"), true);
+    server.send ( 302, "text/plain", "");
+    analogWrite(pinR, 0);
+    analogWrite(pinG, 0);
+    analogWrite(pinB, 0);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(255, 255, 255));
+    strip.show();
+    delay(500);
+    strip.setPixelColor(0, strip.Color(0, 0, 0));
+    strip.show();
+    delay(500);
+  });
   server.on("/update", HTTP_POST, []() {
     server.sendHeader("Connection", "close");
     server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -256,13 +314,13 @@ void beat() {
   }
 
   // Act on voltage reads
-  if ((adcRead <= minLEDVoltage) || (!ledsEnabled)) {
+  if ((adcRead <= minLEDVoltage) && (ledsEnabled)) {
     ledsEnabled = false;
     analogWrite(pinR, 0);
     analogWrite(pinG, 0);
     analogWrite(pinB, 0);
   }
-  if (adcRead <= minSelfVoltage) {
+  else if (adcRead <= minSelfVoltage) {
     // TODO - Put self into sleep mode and send alert packets
     shuttingdown = true;
   }
