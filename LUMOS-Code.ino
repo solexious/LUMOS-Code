@@ -13,6 +13,7 @@
 #include <avr/power.h>
 #endif
 #include "config.h"
+#include "dimmer_curve.h"
 
 #define DATA_JSON_SIZE (JSON_OBJECT_SIZE(12))
 
@@ -253,9 +254,9 @@ void loop()
   uint16_t code = artnetnode.read();
   if (code) {
     if ((code == OpDmx) && (ledsEnabled)) {
-      analogWrite(pinR, artnetnode.returnDMXValue(0, 1));
-      analogWrite(pinG, artnetnode.returnDMXValue(0, 2));
-      analogWrite(pinB, artnetnode.returnDMXValue(0, 3));
+      analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
+      analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
+      analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
       batteryLog();
     }
     else if (code == OpPoll) {
