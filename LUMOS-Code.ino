@@ -32,8 +32,10 @@ Ticker clearBlinkTick;
 WiFiUDP UdpSend;
 Artnetnode artnetnode;
 IPAddress localIP;
-//Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, setting.onboardNeopixelPin, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, 13, NEO_GRB + NEO_KHZ800);
+// Status neopixel
+Adafruit_NeoPixel statusNeo = Adafruit_NeoPixel();
+// Strip neopixel output
+Adafruit_NeoPixel strip = Adafruit_NeoPixel();
 ESP8266WebServer server(80);
 
 
@@ -62,14 +64,26 @@ void setup()
   lowestBattery = analogRead(A0);
 
   // Status neopixel setup
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+  statusNeo.updateLength(1);
+  statusNeo.updateType(NEO_GRB + NEO_KHZ800);
+  statusNeo.setPin(onboardNeopixelPin);
+  statusNeo.begin();
+  statusNeo.show(); // Initialize all pixels to 'off'
+
+  // String neopixel setup
+  if (!ledOutputMode) { // Don't use the memory if we aren't in that mode
+    strip.updateLength(stripLength);
+    strip.updateType(NEO_GRB + NEO_KHZ800);
+    strip.setPin(stripPin);
+    strip.begin();
+    strip.show(); // Initialize all pixels to 'off'
+  }
 
   // Force wifi connection portal or attempt to connect
   if (!digitalRead(btnPin)) {
     // Force AP mode with captive portal for wifi setup
-    strip.setPixelColor(0, strip.Color(100, 0, 100));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(100, 0, 100));
+    statusNeo.show();
     WiFiManager wifiManager;
     wifiManager.startConfigPortal(nodeName.c_str());
     // Reset to use new settings
@@ -78,8 +92,8 @@ void setup()
   }
   else {
     // Try to connect with existing wifi settings
-    strip.setPixelColor(0, strip.Color(0, 0, 100));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 100));
+    statusNeo.show();
     WiFiManager wifiManager;
     // Add callback to change status neopixel to orange if connection fails and we enter AP mode
     wifiManager.setAPCallback(configModeCallback);
@@ -88,11 +102,11 @@ void setup()
     if (!wifiManager.autoConnect(nodeName.c_str())) {
       Serial.println("failed to connect and hit timeout");
       // Reset and try again
-      strip.setPixelColor(0, strip.Color(100, 0, 0));
-      strip.show();
+      statusNeo.setPixelColor(0, statusNeo.Color(100, 0, 0));
+      statusNeo.show();
       delay(1000);
-      strip.setPixelColor(0, strip.Color(0, 0, 0));
-      strip.show();
+      statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+      statusNeo.show();
       ESP.reset();
       delay(1000);
     }
@@ -110,11 +124,11 @@ void setup()
   artnetnode.setDMXOutput(0, 1, 0);
 
   // Connected and happy, flash green
-  strip.setPixelColor(0, strip.Color(0, 100, 0));
-  strip.show();
+  statusNeo.setPixelColor(0, statusNeo.Color(0, 100, 0));
+  statusNeo.show();
   delay(1000);
-  strip.setPixelColor(0, strip.Color(0, 0, 0));
-  strip.show();
+  statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+  statusNeo.show();
 
   // Decrease range - FIXME
   analogWriteRange(255);
@@ -143,53 +157,53 @@ void setup()
     analogWrite(pinR, 0);
     analogWrite(pinG, 0);
     analogWrite(pinB, 0);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(255, 255, 255));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
+    statusNeo.show();
     delay(500);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(500);
   });
   server.on("/update", HTTP_POST, []() {
@@ -207,8 +221,8 @@ void setup()
     ticker.detach();
 
     // Turn us green/blue
-    strip.setPixelColor(0, strip.Color(100, 0, 100));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(100, 0, 100));
+    statusNeo.show();
 
     // Turn off led output
     analogWrite(pinR, 0);
@@ -263,29 +277,29 @@ void loop()
   }
   if (shuttingdown) {
     Serial.print("Danger voltage, deep sleeping forever");
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
+    statusNeo.show();
     delay(200);
-    strip.setPixelColor(0, strip.Color(0, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
     delay(200);
     Serial.println(".");
     ESP.deepSleep(0);
@@ -293,8 +307,8 @@ void loop()
   }
   else if ((WiFi.status() != WL_CONNECTED) && (!shuttingdown)) {
     // Lost wifi connection, reset to reconnect
-    strip.setPixelColor(0, strip.Color(100, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(100, 0, 0));
+    statusNeo.show();
     Serial.print("Connection Lost, restarting");
     delay(2000);
     ESP.reset();
@@ -332,19 +346,19 @@ void beat() {
 
   // Turn on status led for blink
   if (ledsEnabled) {
-    strip.setPixelColor(0, strip.Color(0, 50, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 50, 0));
+    statusNeo.show();
   }
   else {
-    strip.setPixelColor(0, strip.Color(50, 0, 0));
-    strip.show();
+    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
+    statusNeo.show();
   }
   clearBlinkTick.attach(0.1, clearBlink);
 }
 
 void clearBlink() {
-  strip.setPixelColor(0, strip.Color(0, 0, 0));
-  strip.show();
+  statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+  statusNeo.show();
   clearBlinkTick.detach();
 }
 
@@ -354,8 +368,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   //if you used auto generated SSID, print it
   Serial.println(myWiFiManager->getConfigPortalSSID());
   // Change status led
-  strip.setPixelColor(0, strip.Color(100, 100, 0));
-  strip.show();
+  statusNeo.setPixelColor(0, statusNeo.Color(100, 100, 0));
+  statusNeo.show();
 }
 
 void batteryLog() {
@@ -387,10 +401,10 @@ bool getConfigJSON() {
     const char* swVersionConst = configJSONroot["swVersion"];
     String swVersionConstStr = (String)swVersionConst;
 
-//    Serial.println(swVersion);
-//    Serial.println(sizeof(swVersion));
-//    Serial.println(swVersionJSON);
-//    Serial.println(sizeof(swVersionJSON));
+    //    Serial.println(swVersion);
+    //    Serial.println(sizeof(swVersion));
+    //    Serial.println(swVersionJSON);
+    //    Serial.println(sizeof(swVersionJSON));
 
     if (!swVersionConstStr.equals(swVersion)) {
       Serial.println("check failed");
@@ -402,7 +416,7 @@ bool getConfigJSON() {
       defaultConfigJSON();
 
     }
-    
+
     const char* nodeNameConst = configJSONroot["nodeName"];
     nodeName = (String)nodeNameConst;
     const char* hwVersionConst = configJSONroot["hwVersion"];
@@ -420,6 +434,9 @@ bool getConfigJSON() {
     www_username = (String)www_usernameConst;
     const char* www_passwordConst = configJSONroot["www_password"];
     www_password = (String)www_passwordConst;
+    ledOutputMode = configJSONroot["ledOutputMode"];
+    stripLength = configJSONroot["stripLength"];
+    stripPin = configJSONroot["stripPin"];
 
     return configJSONroot.success();
   }
@@ -447,6 +464,9 @@ void defaultConfigJSON() {
   root["minSelfVoltage"] = minSelfVoltage;
   root["www_username"] = (const char*)www_username.c_str();
   root["www_password"] = (const char*)www_password.c_str();
+  root["ledOutputMode"] = ledOutputMode;
+  root["stripLength"] = stripLength;
+  root["stripPin"] = stripPin;
 
   File configJSONfile = SPIFFS.open("/config.json", "w+");
   root.printTo(configJSONfile);
