@@ -15,7 +15,6 @@
 #include "config.h"
 #include "dimmer_curve.h"
 
-#define DATA_JSON_SIZE (JSON_OBJECT_SIZE(12))
 
 // Globals
 bool ledsEnabled = true;
@@ -26,7 +25,6 @@ char udpBeatPacket[185];
 uint8_t mac[6];
 bool shuttingdown = false;
 int lowestBattery = 0;
-//void getConfigJSON();
 
 // Lib
 Ticker ticker;
