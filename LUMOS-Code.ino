@@ -164,54 +164,7 @@ void setup()
     analogWrite(pinR, 0);
     analogWrite(pinG, 0);
     analogWrite(pinB, 0);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(255, 255, 255));
-    statusNeo.show();
-    delay(500);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(500);
+    flashStatus(255, 255, 255, 8, 500);
   });
   server.on("/update", HTTP_POST, []() {
     server.sendHeader("Connection", "close");
@@ -284,30 +237,7 @@ void loop()
   }
   if (shuttingdown) {
     Serial.print("Danger voltage, deep sleeping forever");
-    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(50, 0, 0));
-    statusNeo.show();
-    delay(200);
-    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-    statusNeo.show();
-    delay(200);
+    flashStatus(50, 0, 0, 4, 200);
     Serial.println(".");
     ESP.deepSleep(0);
     while (true) {}
@@ -383,6 +313,17 @@ void batteryLog() {
   int check = analogRead(A0);
   if (check < lowestBattery) {
     lowestBattery = check;
+  }
+}
+
+void flashStatus(int r, int g, int b, int times, int delayLen){
+  for(int a = 0; a<times; a++){
+    statusNeo.setPixelColor(0, statusNeo.Color(r, g, b));
+    statusNeo.show();
+    delay(delayLen);
+    statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+    statusNeo.show();
+    delay(delayLen);
   }
 }
 
