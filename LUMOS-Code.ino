@@ -148,6 +148,13 @@ void setup()
     }
     server.send(200, "text/plain", "Login OK");
   });
+  server.on("/reset", []() {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
+      return server.requestAuthentication();
+    }
+    server.send(200, "text/html", "Resetting now... <a href=\"/\">Return</a>");
+    ESP.reset();
+  });
   server.on("/findme", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
