@@ -370,11 +370,6 @@ bool getConfigJSON() {
     const char* swVersionConst = configJSONroot["swVersion"];
     String swVersionConstStr = (String)swVersionConst;
 
-    //    Serial.println(swVersion);
-    //    Serial.println(sizeof(swVersion));
-    //    Serial.println(swVersionJSON);
-    //    Serial.println(sizeof(swVersionJSON));
-
     if (!swVersionConstStr.equals(swVersion)) {
       Serial.println("check failed");
       // Out of date config file, update it!
