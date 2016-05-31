@@ -76,6 +76,7 @@ void setup()
     strip.updateType(NEO_GRB + NEO_KHZ800);
     strip.setPin(stripPin);
     strip.begin();
+    strip.clear();
     strip.show(); // Initialize all pixels to 'off'
   }
 
@@ -382,7 +383,8 @@ bool getConfigJSON() {
       SPIFFS.remove("/config.json");
       // Create new default
       defaultConfigJSON();
-
+      // Reset to load new config
+      ESP.reset();
     }
 
     const char* nodeNameConst = configJSONroot["nodeName"];
