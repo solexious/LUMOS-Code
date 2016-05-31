@@ -385,6 +385,7 @@ bool getConfigJSON() {
       defaultConfigJSON();
       // Reset to load new config
       ESP.reset();
+      delay(1000);
     }
 
     const char* nodeNameConst = configJSONroot["nodeName"];
