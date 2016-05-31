@@ -102,11 +102,7 @@ void setup()
     if (!wifiManager.autoConnect(nodeName.c_str())) {
       Serial.println("failed to connect and hit timeout");
       // Reset and try again
-      statusNeo.setPixelColor(0, statusNeo.Color(100, 0, 0));
-      statusNeo.show();
-      delay(1000);
-      statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-      statusNeo.show();
+      flashStatus(100, 0, 0, 1, 1000);
       ESP.reset();
       delay(1000);
     }
@@ -124,11 +120,7 @@ void setup()
   artnetnode.setDMXOutput(0, 1, 0);
 
   // Connected and happy, flash green
-  statusNeo.setPixelColor(0, statusNeo.Color(0, 100, 0));
-  statusNeo.show();
-  delay(1000);
-  statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
-  statusNeo.show();
+  flashStatus(0, 100, 0, 1, 1000);
 
   // Decrease range - FIXME
   analogWriteRange(255);
@@ -161,9 +153,14 @@ void setup()
     }
     server.sendHeader("Location", String("/"), true);
     server.send ( 302, "text/plain", "");
-    analogWrite(pinR, 0);
-    analogWrite(pinG, 0);
-    analogWrite(pinB, 0);
+    if (ledOutputMode) {
+      analogWrite(pinR, 0);
+      analogWrite(pinG, 0);
+      analogWrite(pinB, 0);
+    }
+    else {
+      clearStrip();
+    }
     flashStatus(255, 255, 255, 8, 500);
   });
   server.on("/update", HTTP_POST, []() {
@@ -185,9 +182,14 @@ void setup()
     statusNeo.show();
 
     // Turn off led output
-    analogWrite(pinR, 0);
-    analogWrite(pinG, 0);
-    analogWrite(pinB, 0);
+    if (ledOutputMode) {
+      analogWrite(pinR, 0);
+      analogWrite(pinG, 0);
+      analogWrite(pinB, 0);
+    }
+    else {
+      clearStrip();
+    }
     ledsEnabled = false;
 
     HTTPUpload& upload = server.upload();
@@ -226,9 +228,14 @@ void loop()
   uint16_t code = artnetnode.read();
   if (code) {
     if ((code == OpDmx) && (ledsEnabled)) {
-      analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
-      analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
-      analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
+      if (ledOutputMode) {
+        analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
+        analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
+        analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
+      }
+      else {
+        setStrip();
+      }
       batteryLog();
     }
     else if (code == OpPoll) {
@@ -316,8 +323,8 @@ void batteryLog() {
   }
 }
 
-void flashStatus(int r, int g, int b, int times, int delayLen){
-  for(int a = 0; a<times; a++){
+void flashStatus(int r, int g, int b, int times, int delayLen) {
+  for (int a = 0; a < times; a++) {
     statusNeo.setPixelColor(0, statusNeo.Color(r, g, b));
     statusNeo.show();
     delay(delayLen);
@@ -325,6 +332,19 @@ void flashStatus(int r, int g, int b, int times, int delayLen){
     statusNeo.show();
     delay(delayLen);
   }
+}
+
+void setStrip() {
+  strip.clear();
+  for (int a = 0; a < stripLength; a++) {
+    strip.setPixelColor((a * 3), artnetnode.returnDMXValue(0, (a * 3) + 1), artnetnode.returnDMXValue(0, (a * 3) + 2), artnetnode.returnDMXValue(0, (a * 3) + 3));
+  }
+  strip.show();
+}
+
+void clearStrip() {
+  strip.clear();
+  strip.show();
 }
 
 bool getConfigJSON() {

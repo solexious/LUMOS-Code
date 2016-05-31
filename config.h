@@ -3,7 +3,7 @@
 
 String nodeName = "DEFAULT";
 String hwVersion = "0.2";
-String swVersion = "0.2";
+String swVersion = "0.3";
 int pinR = 15;
 int pinG = 5;
 int pinB = 4;
@@ -13,6 +13,6 @@ int minLEDVoltage = 775;
 int minSelfVoltage = 725;
 String www_username = "admin";
 String www_password = "esp8266";
-bool ledOutputMode = true; // true=12w flase=neopixels
+bool ledOutputMode = false; // true=12w flase=neopixels
 int stripLength = 60;
 int stripPin = 14;
