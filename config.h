@@ -20,3 +20,6 @@ IPAddress serverIP(192, 168, 0, 100);
 String serverName = "command.lumos-project.com";
 int tryServerDNS = true;
 int ledChannelMode = 3; // 0 - 3 channel (rgb), 1 - 4 channel (rgb dim), 2 - 6 channel (rrggbb), 3 - 7 channel (rrggbb dim)
+int firstChannel = 1;
+int universe = 0;
+bool allowBroadcastDMX = false;

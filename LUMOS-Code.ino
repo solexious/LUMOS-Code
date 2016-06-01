@@ -248,26 +248,26 @@ void loop()
     if ((code == OpDmx) && (ledsEnabled)) {
       if (ledOutputMode) {
         if (ledChannelMode == 0) {
-          analogWrite(pinR, ledCurve8bit[artnetnode.returnDMXValue(0, 1)]);
-          analogWrite(pinG, ledCurve8bit[artnetnode.returnDMXValue(0, 2)]);
-          analogWrite(pinB, ledCurve8bit[artnetnode.returnDMXValue(0, 3)]);
+          analogWrite(pinR, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel)]);
+          analogWrite(pinG, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel+1)]);
+          analogWrite(pinB, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel+2)]);
         }
         else if (ledChannelMode == 1) {
           uint32_t factor = 255;
-          analogWrite(pinR, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
-          analogWrite(pinG, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
-          analogWrite(pinB, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 3)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinR, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
+          analogWrite(pinG, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel+1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
+          analogWrite(pinB, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel+2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
         }
         else if (ledChannelMode == 2) {
-          analogWrite(pinR, ((uint16_t)((artnetnode.returnDMXValue(0, 1)<<8) | artnetnode.returnDMXValue(0, 2))/64));
-          analogWrite(pinG, ((uint16_t)((artnetnode.returnDMXValue(0, 3)<<8) | artnetnode.returnDMXValue(0, 4))/64));
-          analogWrite(pinB, ((uint16_t)((artnetnode.returnDMXValue(0, 5)<<8) | artnetnode.returnDMXValue(0, 6))/64));
+          analogWrite(pinR, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel)<<8) | artnetnode.returnDMXValue(0, firstChannel+1))/64));
+          analogWrite(pinG, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+2)<<8) | artnetnode.returnDMXValue(0, firstChannel+3))/64));
+          analogWrite(pinB, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+4)<<8) | artnetnode.returnDMXValue(0, firstChannel+5))/64));
         }
         else if (ledChannelMode == 3) {
-          uint32_t rdim = ((uint16_t)((artnetnode.returnDMXValue(0, 1)<<8) | artnetnode.returnDMXValue(0, 2))/64);
-          uint32_t gdim = ((uint16_t)((artnetnode.returnDMXValue(0, 3)<<8) | artnetnode.returnDMXValue(0, 4))/64);
-          uint32_t bdim = ((uint16_t)((artnetnode.returnDMXValue(0, 5)<<8) | artnetnode.returnDMXValue(0, 6))/64);
-          uint32_t dim = ((uint16_t)((artnetnode.returnDMXValue(0, 7)<<8) | artnetnode.returnDMXValue(0, 8))/64);
+          uint32_t rdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel)<<8) | artnetnode.returnDMXValue(0, firstChannel+1))/64);
+          uint32_t gdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+2)<<8) | artnetnode.returnDMXValue(0, firstChannel+3))/64);
+          uint32_t bdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+4)<<8) | artnetnode.returnDMXValue(0, firstChannel+5))/64);
+          uint32_t dim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+6)<<8) | artnetnode.returnDMXValue(0, firstChannel+7))/64);
           uint32_t factor = 1023;
           analogWrite(pinR, (((rdim*factor)/1023)*dim)/factor);
           analogWrite(pinG, (((gdim*factor)/1023)*dim)/factor);
