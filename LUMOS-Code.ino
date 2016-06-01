@@ -119,6 +119,7 @@ void setup()
   Serial.println();
   Serial.println("Connected");
   artnetnode.setDMXOutput(0, 1, universe);
+  artnetnode.allowBroadcastDMX(allowBroadcastDMX);
 
   // Connected and happy, flash green
   flashStatus(0, 100, 0, 1, 1000);
