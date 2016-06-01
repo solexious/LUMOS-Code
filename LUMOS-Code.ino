@@ -451,6 +451,10 @@ bool getConfigJSON() {
     const char* serverNameConst = configJSONroot["serverName"];
     serverName = (String)serverNameConst;
     tryServerDNS = configJSONroot["tryServerDNS"];
+    ledChannelMode = configJSONroot["ledChannelMode"];
+    firstChannel = configJSONroot["firstChannel"];
+    universe = configJSONroot["universe"];
+    allowBroadcastDMX = configJSONroot["allowBroadcastDMX"];
 
     return configJSONroot.success();
   }
@@ -488,6 +492,10 @@ void defaultConfigJSON() {
   data.add(serverIP[3]);
   root["serverName"] = (const char*)serverName.c_str();
   root["tryServerDNS"] = tryServerDNS;
+  root["ledChannelMode"] = ledChannelMode;
+  root["firstChannel"] = firstChannel;
+  root["universe"] = universe;
+  root["allowBroadcastDMX"] = allowBroadcastDMX;
 
   File configJSONfile = SPIFFS.open("/config.json", "w+");
   root.printTo(configJSONfile);
