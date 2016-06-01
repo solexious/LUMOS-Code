@@ -379,7 +379,7 @@ void flashStatus(int r, int g, int b, int times, int delayLen) {
 void setStrip() {
   strip.clear();
   for (int a = 0; a < stripLength; a++) {
-    strip.setPixelColor((a * 3), artnetnode.returnDMXValue(0, (a * 3) + 1), artnetnode.returnDMXValue(0, (a * 3) + 2), artnetnode.returnDMXValue(0, (a * 3) + 3));
+    strip.setPixelColor((a * 3), artnetnode.returnDMXValue(0, (a * 3) + firstChannel), artnetnode.returnDMXValue(0, (a * 3) + firstChannel + 1), artnetnode.returnDMXValue(0, (a * 3) + firstChannel + 2));
   }
   strip.show();
 }
