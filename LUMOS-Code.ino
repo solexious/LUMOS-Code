@@ -128,7 +128,7 @@ void setup()
     analogWriteRange(255);
   }
   else {
-    analogWriteRange(65535);
+    analogWriteRange(1023);
   }
 
   // Try to find the control server through dns if option selected
@@ -248,15 +248,30 @@ void loop()
     if ((code == OpDmx) && (ledsEnabled)) {
       if (ledOutputMode) {
         if (ledChannelMode == 0) {
-          analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
-          analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
-          analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
+          analogWrite(pinR, ledCurve8bit[artnetnode.returnDMXValue(0, 1)]);
+          analogWrite(pinG, ledCurve8bit[artnetnode.returnDMXValue(0, 2)]);
+          analogWrite(pinB, ledCurve8bit[artnetnode.returnDMXValue(0, 3)]);
         }
         else if (ledChannelMode == 1) {
           uint32_t factor = 255;
-          analogWrite(pinR, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
-          analogWrite(pinG, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
-          analogWrite(pinB, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 3)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinR, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinG, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinB, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, 3)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+        }
+        else if (ledChannelMode == 2) {
+          analogWrite(pinR, ((uint16_t)((artnetnode.returnDMXValue(0, 1)<<8) | artnetnode.returnDMXValue(0, 2))/64));
+          analogWrite(pinG, ((uint16_t)((artnetnode.returnDMXValue(0, 3)<<8) | artnetnode.returnDMXValue(0, 4))/64));
+          analogWrite(pinB, ((uint16_t)((artnetnode.returnDMXValue(0, 5)<<8) | artnetnode.returnDMXValue(0, 6))/64));
+        }
+        else if (ledChannelMode == 3) {
+          uint32_t rdim = ((uint16_t)((artnetnode.returnDMXValue(0, 1)<<8) | artnetnode.returnDMXValue(0, 2))/64);
+          uint32_t gdim = ((uint16_t)((artnetnode.returnDMXValue(0, 3)<<8) | artnetnode.returnDMXValue(0, 4))/64);
+          uint32_t bdim = ((uint16_t)((artnetnode.returnDMXValue(0, 5)<<8) | artnetnode.returnDMXValue(0, 6))/64);
+          uint32_t dim = ((uint16_t)((artnetnode.returnDMXValue(0, 7)<<8) | artnetnode.returnDMXValue(0, 8))/64);
+          uint32_t factor = 1023;
+          analogWrite(pinR, (((rdim*factor)/1023)*dim)/factor);
+          analogWrite(pinG, (((gdim*factor)/1023)*dim)/factor);
+          analogWrite(pinB, (((bdim*factor)/1023)*dim)/factor);
         }
       }
       else {
