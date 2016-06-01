@@ -13,6 +13,9 @@ int minLEDVoltage = 775;
 int minSelfVoltage = 725;
 String www_username = "admin";
 String www_password = "esp8266";
-bool ledOutputMode = false; // true=12w flase=neopixels
+bool ledOutputMode = true; // true=12w flase=neopixels
 int stripLength = 60;
 int stripPin = 14;
+IPAddress serverIP(192, 168, 0, 100);
+String serverName = "command.lumos-project.com";
+int tryServerDNS = true;

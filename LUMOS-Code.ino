@@ -134,6 +134,18 @@ void setup()
   ticker.attach(5, beat);
   beat();
 
+  // Try to find the control server through dns if option selected
+  if (tryServerDNS) {
+    IPAddress ipa;
+    if(WiFi.hostByName(serverName.c_str(), ipa)){
+      Serial.println("Server found");
+      serverIP = ipa;
+    }
+    else{
+      Serial.println("Server not found");
+    }
+  }
+
   // Setup webserver
   server.on("/", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
@@ -284,7 +296,7 @@ void beat() {
   }
 
   // Send heartbeat packet
-  UdpSend.beginPacket({192, 168, 0, 100}, 33333);
+  UdpSend.beginPacket(serverIP, 33333);
   sprintf(udpBeatPacket, udpBeatPacketStart, adcRead, lowestBattery, ledsEnabled ? "true" : "false");
   UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
   UdpSend.endPacket();
@@ -403,6 +415,13 @@ bool getConfigJSON() {
     ledOutputMode = configJSONroot["ledOutputMode"];
     stripLength = configJSONroot["stripLength"];
     stripPin = configJSONroot["stripPin"];
+    serverIP[0] = configJSONroot["serverIP"][0];
+    serverIP[1] = configJSONroot["serverIP"][1];
+    serverIP[2] = configJSONroot["serverIP"][2];
+    serverIP[3] = configJSONroot["serverIP"][3];
+    const char* serverNameConst = configJSONroot["serverName"];
+    serverName = (String)serverNameConst;
+    tryServerDNS = configJSONroot["tryServerDNS"];
 
     return configJSONroot.success();
   }
@@ -433,6 +452,13 @@ void defaultConfigJSON() {
   root["ledOutputMode"] = ledOutputMode;
   root["stripLength"] = stripLength;
   root["stripPin"] = stripPin;
+  JsonArray& data = root.createNestedArray("serverIP");
+  data.add(serverIP[0]);
+  data.add(serverIP[1]);
+  data.add(serverIP[2]);
+  data.add(serverIP[3]);
+  root["serverName"] = (const char*)serverName.c_str();
+  root["tryServerDNS"] = tryServerDNS;
 
   File configJSONfile = SPIFFS.open("/config.json", "w+");
   root.printTo(configJSONfile);
