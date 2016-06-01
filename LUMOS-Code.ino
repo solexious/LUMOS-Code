@@ -123,8 +123,25 @@ void setup()
   // Connected and happy, flash green
   flashStatus(0, 100, 0, 1, 1000);
 
-  // Decrease range - FIXME
-  analogWriteRange(255);
+  // Set write range based on setting
+  if ((ledChannelMode == 0) || (ledChannelMode == 1)) {
+    analogWriteRange(255);
+  }
+  else {
+    analogWriteRange(65535);
+  }
+
+  // Try to find the control server through dns if option selected
+  if (tryServerDNS) {
+    IPAddress ipa;
+    if (WiFi.hostByName(serverName.c_str(), ipa)) {
+      Serial.println("Server found");
+      serverIP = ipa;
+    }
+    else {
+      Serial.println("Server not found");
+    }
+  }
 
   // Setup heartbeat packet
   UdpSend.begin(4000);
@@ -133,18 +150,6 @@ void setup()
           nodeName.c_str(), hwVersion.c_str(), swVersion.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
   ticker.attach(5, beat);
   beat();
-
-  // Try to find the control server through dns if option selected
-  if (tryServerDNS) {
-    IPAddress ipa;
-    if(WiFi.hostByName(serverName.c_str(), ipa)){
-      Serial.println("Server found");
-      serverIP = ipa;
-    }
-    else{
-      Serial.println("Server not found");
-    }
-  }
 
   // Setup webserver
   server.on("/", []() {
@@ -242,9 +247,17 @@ void loop()
   if (code) {
     if ((code == OpDmx) && (ledsEnabled)) {
       if (ledOutputMode) {
-        analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
-        analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
-        analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
+        if (ledChannelMode == 0) {
+          analogWrite(pinR, ledCurve[artnetnode.returnDMXValue(0, 1)]);
+          analogWrite(pinG, ledCurve[artnetnode.returnDMXValue(0, 2)]);
+          analogWrite(pinB, ledCurve[artnetnode.returnDMXValue(0, 3)]);
+        }
+        else if (ledChannelMode == 1) {
+          uint32_t factor = 255;
+          analogWrite(pinR, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinG, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+          analogWrite(pinB, ledCurve[((((uint32_t)artnetnode.returnDMXValue(0, 3)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, 4))/factor]);
+        }
       }
       else {
         setStrip();
