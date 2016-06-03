@@ -3,7 +3,7 @@
 
 String nodeName = "DEFAULT";
 String hwVersion = "0.2";
-String swVersion = "0.3";
+String swVersion = "0.2";
 int pinR = 15;
 int pinG = 5;
 int pinB = 4;
@@ -18,8 +18,8 @@ int stripLength = 60;
 int stripPin = 14;
 IPAddress serverIP(192, 168, 0, 100);
 String serverName = "command.lumos-project.com";
-int tryServerDNS = true;
-int ledChannelMode = 3; // 0 - 3 channel (rgb), 1 - 4 channel (rgb dim), 2 - 6 channel (rrggbb), 3 - 7 channel (rrggbb dim)
+bool tryServerDNS = true;
+int ledChannelMode = 0; // 0 - 3 channel (rgb), 1 - 4 channel (rgb dim), 2 - 6 channel (rrggbb), 3 - 8 channel (rrggbb dim dim)
 int firstChannel = 1;
 int universe = 0;
 bool allowBroadcastDMX = false;

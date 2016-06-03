@@ -21,8 +21,8 @@
 bool ledsEnabled = true;
 #define DMX_MAX 512 // max. number of DMX data packages.
 uint8_t DMXBuffer[DMX_MAX];
-char udpBeatPacketStart[185];
-char udpBeatPacket[185];
+char udpBeatPacketStart[200];
+char udpBeatPacket[200];
 uint8_t mac[6];
 bool shuttingdown = false;
 int lowestBattery = 0;
@@ -150,9 +150,7 @@ void setup()
 
   // Setup heartbeat packet
   UdpSend.begin(4000);
-  localIP = WiFi.localIP();
-  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"hw_version\":\"%s\",\"sw_version\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
-          nodeName.c_str(), hwVersion.c_str(), swVersion.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
+  makeUDPStartPacket();
   ticker.attach(5, beat);
   beat();
 
@@ -161,7 +159,27 @@ void setup()
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
     }
-    server.send(200, "text/plain", "Login OK");
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += "<br/><div class=\"c\">LUMOS Config and Control</div><br/>";
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "Home");
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/settings");
+    page.replace("{n}", "Settings");
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/findme");
+    page.replace("{n}", "Find Me");
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/reset");
+    page.replace("{n}", "Reset");
+    page += FPSTR(HTTP_END);
+    
+    server.send(200, "text/html", page);
   });
   server.on("/settings", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
@@ -174,12 +192,12 @@ void setup()
     page += FPSTR(HTTP_HEAD_END);
     page += FPSTR(HTTP_FORM_START_GENERIC);
     page.replace("{t}", "GET");
-    page.replace("{a}", "/settingSave");
+    page.replace("{a}", "/settingsSave");
 
     page += "Node Name:";
     page += FPSTR(HTTP_FORM_PARAM);
-    page.replace("{i}", "name");
-    page.replace("{n}", "name");
+    page.replace("{i}", "nodeName");
+    page.replace("{n}", "nodeName");
     page.replace("{p}", nodeName);
     page.replace("{v}", nodeName);
     page.replace("{c}", "");
@@ -455,19 +473,159 @@ void setup()
 
     server.send(200, "text/html", page);
   });
+  server.on("/settingsSave", []() {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
+      return server.requestAuthentication();
+    }
+
+    if (ledOutputMode) {
+      analogWrite(pinR, 0);
+      analogWrite(pinG, 0);
+      analogWrite(pinB, 0);
+    }
+    else {
+      clearStrip();
+    }
+
+    if (server.hasArg("nodeName")){
+      nodeName = server.arg("nodeName");
+    }
+    if (server.hasArg("hwVersion")){
+      hwVersion = server.arg("hwVersion");
+    }
+    if (server.hasArg("swVersion")){
+      swVersion = server.arg("swVersion");
+    }
+    if (server.hasArg("pinR")){
+      pinR = server.arg("pinR").toInt();
+    }
+    if (server.hasArg("pinG")){
+      pinG = server.arg("pinG").toInt();
+    }
+    if (server.hasArg("pinB")){
+      pinB = server.arg("pinB").toInt();
+    }
+    if (server.hasArg("onboardNeopixelPin")){
+      onboardNeopixelPin = server.arg("onboardNeopixelPin").toInt();
+    }
+    if (server.hasArg("btnPin")){
+      btnPin = server.arg("btnPin").toInt();
+    }
+    if (server.hasArg("minLEDVoltage")){
+      minLEDVoltage = server.arg("minLEDVoltage").toInt();
+    }
+    if (server.hasArg("minSelfVoltage")){
+      minSelfVoltage = server.arg("minSelfVoltage").toInt();
+    }
+    if (server.hasArg("www_username")){
+      www_username = server.arg("www_username");
+    }
+    if (server.hasArg("www_password")){
+      www_password = server.arg("www_password");
+    }
+    if (server.hasArg("ledOutputMode")){
+      if (server.arg("ledOutputMode") == "true") {
+        ledOutputMode = true;
+      }
+      else {
+        ledOutputMode = false;
+      }
+    }
+    if (server.hasArg("stripLength")){
+      stripLength = server.arg("stripLength").toInt();
+    }
+    if (server.hasArg("stripPin")){
+      stripPin = server.arg("stripPin").toInt();
+    }
+    if (server.hasArg("serverIP")){
+      serverIP.fromString(server.arg("serverIP"));
+    }
+    if (server.hasArg("serverName")){
+      serverName = server.arg("serverName");
+    }
+    if (server.hasArg("tryServerDNS")){
+      if (server.arg("tryServerDNS") == "true") {
+        tryServerDNS = true;
+      }
+      else {
+        tryServerDNS = false;
+      }
+    }
+    if (server.hasArg("ledChannelMode")){
+      ledChannelMode = server.arg("ledChannelMode").toInt();
+    }
+    if (server.hasArg("firstChannel")){
+      firstChannel = server.arg("firstChannel").toInt();
+    }
+    if (server.hasArg("universe")){
+      universe = server.arg("universe").toInt();
+    }
+    if (server.hasArg("allowBroadcastDMX")){
+      if (server.arg("allowBroadcastDMX") == "true") {
+        allowBroadcastDMX = true;
+      }
+      else {
+        allowBroadcastDMX = false;
+      }
+    }
+
+    // Save new var settings
+    defaultConfigJSON();
+    makeUDPStartPacket();
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos - Settings Saved");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += "<br/><div class=\"c\">Settings Saved...</div><br/>";
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/settings");
+    page.replace("{n}", "Return to Settings");
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/reset");
+    page.replace("{n}", "Reset");
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "Home");
+    page += FPSTR(HTTP_END);
+    
+    server.send(200, "text/html", page);
+  });
   server.on("/reset", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
     }
-    server.send(200, "text/html", "Resetting now... <a href=\"/\">Return</a>");
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos - Resetting");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += "<br/><div class=\"c\">Resetting 30 seconds...</div><br/>";
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "Home");
+    page += FPSTR(HTTP_END);
+    
+    server.send(200, "text/html", page);
     ESP.reset();
   });
   server.on("/findme", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
       return server.requestAuthentication();
     }
-    server.sendHeader("Location", String("/"), true);
-    server.send ( 302, "text/plain", "");
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos - Find Me");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += "<br/><div class=\"c\">Flashing Status LED</div><br/>";
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "Home");
+    page += FPSTR(HTTP_END);
+    
+    server.send(200, "text/html", page);
+    
     if (ledOutputMode) {
       analogWrite(pinR, 0);
       analogWrite(pinG, 0);
@@ -598,6 +756,13 @@ void loop()
   }
 }
 
+void makeUDPStartPacket() {
+  memset(udpBeatPacketStart,0,sizeof(udpBeatPacketStart));
+  localIP = WiFi.localIP();
+  sprintf(udpBeatPacketStart, "{\"name\":\"%s\",\"hw_version\":\"%s\",\"sw_version\":\"%s\",\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\",\"ip\":\"%d.%d.%d.%d\",\"current_voltage\":%%d,\"lowest_voltage\":%%d,\"output_enabled\":%%s}",
+          nodeName.c_str(), hwVersion.c_str(), swVersion.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], localIP[0],  localIP[1],  localIP[2],  localIP[3]);
+}
+
 void beat() {
   // Check battery voltage level for turn off
   batteryLog();
@@ -622,6 +787,7 @@ void beat() {
 
   // Send heartbeat packet
   UdpSend.beginPacket(serverIP, 33333);
+  memset(udpBeatPacket,0,sizeof(udpBeatPacket));
   sprintf(udpBeatPacket, udpBeatPacketStart, adcRead, lowestBattery, ledsEnabled ? "true" : "false");
   UdpSend.write(udpBeatPacket, sizeof(udpBeatPacket) - 1);
   UdpSend.endPacket();
