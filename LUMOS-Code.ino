@@ -14,6 +14,7 @@
 #endif
 #include "config.h"
 #include "dimmer_curve.h"
+#include "html_progmem.h"
 
 
 // Globals
@@ -121,8 +122,8 @@ void setup()
   artnetnode.setDMXOutput(0, 1, universe);
   artnetnode.allowBroadcastDMX(allowBroadcastDMX);
 
-  // Connected and happy, flash green
-  flashStatus(0, 100, 0, 1, 1000);
+  // Connected and happy, turn green
+  statusNeo.setPixelColor(0, statusNeo.Color(0, 100, 0));
 
   // Set write range based on setting
   if ((ledChannelMode == 0) || (ledChannelMode == 1)) {
@@ -144,6 +145,9 @@ void setup()
     }
   }
 
+  // Finished dns lookups, turn off status
+  statusNeo.setPixelColor(0, statusNeo.Color(0, 0, 0));
+
   // Setup heartbeat packet
   UdpSend.begin(4000);
   localIP = WiFi.localIP();
@@ -158,6 +162,298 @@ void setup()
       return server.requestAuthentication();
     }
     server.send(200, "text/plain", "Login OK");
+  });
+  server.on("/settings", []() {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
+      return server.requestAuthentication();
+    }
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos - Settings");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += FPSTR(HTTP_FORM_START_GENERIC);
+    page.replace("{t}", "GET");
+    page.replace("{a}", "/settingSave");
+
+    page += "Node Name:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "name");
+    page.replace("{n}", "name");
+    page.replace("{p}", nodeName);
+    page.replace("{v}", nodeName);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Hardware Version:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "hwVersion");
+    page.replace("{n}", "hwVersion");
+    page.replace("{p}", hwVersion);
+    page.replace("{v}", hwVersion);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Software Version:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "swVersion");
+    page.replace("{n}", "swVersion");
+    page.replace("{p}", swVersion);
+    page.replace("{v}", swVersion);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>R PWM Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "pinR");
+    page.replace("{n}", "pinR");
+    page.replace("{p}", (String)pinR);
+    page.replace("{v}", (String)pinR);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>G PWM Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "pinG");
+    page.replace("{n}", "pinG");
+    page.replace("{p}", (String)pinG);
+    page.replace("{v}", (String)pinG);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>B PWM Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "pinB");
+    page.replace("{n}", "pinB");
+    page.replace("{p}", (String)pinB);
+    page.replace("{v}", (String)pinB);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Neopixel Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "onboardNeopixelPin");
+    page.replace("{n}", "onboardNeopixelPin");
+    page.replace("{p}", (String)onboardNeopixelPin);
+    page.replace("{v}", (String)onboardNeopixelPin);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Button Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "btnPin");
+    page.replace("{n}", "btnPin");
+    page.replace("{p}", (String)btnPin);
+    page.replace("{v}", (String)btnPin);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Min LED Voltage:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "minLEDVoltage");
+    page.replace("{n}", "minLEDVoltage");
+    page.replace("{p}", (String)minLEDVoltage);
+    page.replace("{v}", (String)minLEDVoltage);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Min Self Voltage:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "minSelfVoltage");
+    page.replace("{n}", "minSelfVoltage");
+    page.replace("{p}", (String)minSelfVoltage);
+    page.replace("{v}", (String)minSelfVoltage);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Web Username:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "www_username");
+    page.replace("{n}", "www_username");
+    page.replace("{p}", www_username);
+    page.replace("{v}", www_username);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Web Password:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "www_password");
+    page.replace("{n}", "www_password");
+    page.replace("{p}", www_password);
+    page.replace("{v}", www_password);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>LED Output Mode:";
+    page += FPSTR(HTTP_SELECT);
+    page.replace("{n}", "ledOutputMode");
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "true");
+    page.replace("{n}", "12W LEDs");
+    if (ledOutputMode) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "false");
+    page.replace("{n}", "Neopixel Strip");
+    if (!ledOutputMode) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_SELECT_END);
+
+    page += "<br/><br/>Strip Length:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "stripLength");
+    page.replace("{n}", "stripLength");
+    page.replace("{p}", (String)stripLength);
+    page.replace("{v}", (String)stripLength);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Strip Pin:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "stripPin");
+    page.replace("{n}", "stripPin");
+    page.replace("{p}", (String)stripPin);
+    page.replace("{v}", (String)stripPin);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Control Server IP:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "serverIP");
+    page.replace("{n}", "serverIP");
+    String ipPrint = (String)serverIP[0] + "." + (String)serverIP[1] + "." + (String)serverIP[2] + "." + (String)serverIP[3];
+    page.replace("{p}", ipPrint);
+    page.replace("{v}", ipPrint);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Control Server DNS Address:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "serverName");
+    page.replace("{n}", "serverName");
+    page.replace("{p}", serverName);
+    page.replace("{v}", serverName);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Control Server Locate:";
+    page += FPSTR(HTTP_SELECT);
+    page.replace("{n}", "tryServerDNS");
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "true");
+    page.replace("{n}", "Try DNS address, fallback to IP");
+    if (ledOutputMode) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "false");
+    page.replace("{n}", "IP address only");
+    if (!ledOutputMode) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_SELECT_END);
+
+    page += "<br/><br/>LED Channel Mode:";
+    page += FPSTR(HTTP_SELECT);
+    page.replace("{n}", "ledChannelMode");
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "0");
+    page.replace("{n}", "3 channel (rgb)");
+    if (ledChannelMode == 0) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "1");
+    page.replace("{n}", "4 channel (rgb dim)");
+    if (ledChannelMode == 1) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "2");
+    page.replace("{n}", "6 channel (rrggbb)");
+    if (ledChannelMode == 2) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "3");
+    page.replace("{n}", "8 channel (rrggbb dim dim)");
+    if (ledChannelMode == 3) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_SELECT_END);
+
+    page += "<br/><br/>First DMX Channel:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "firstChannel");
+    page.replace("{n}", "firstChannel");
+    page.replace("{p}", (String)firstChannel);
+    page.replace("{v}", (String)firstChannel);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>DMX Universe:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "universe");
+    page.replace("{n}", "universe");
+    page.replace("{p}", (String)universe);
+    page.replace("{v}", (String)universe);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
+    page += "<br/><br/>Allow Broadcast DMX:";
+    page += FPSTR(HTTP_SELECT);
+    page.replace("{n}", "allowBroadcastDMX");
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "true");
+    page.replace("{n}", "Allow");
+    if (allowBroadcastDMX) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_OPTION);
+    page.replace("{v}", "false");
+    page.replace("{n}", "Disalow");
+    if (!allowBroadcastDMX) {
+      page.replace("{s}", "selected");
+    }
+    else {
+      page.replace("{s}", "");
+    }
+    page += FPSTR(HTTP_SELECT_END);
+
+    page += "<br/><br/>";
+    page += FPSTR(HTTP_FORM_END);
+    page += FPSTR(HTTP_END);
+
+    server.send(200, "text/html", page);
   });
   server.on("/reset", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
@@ -250,29 +546,29 @@ void loop()
       if (ledOutputMode) {
         if (ledChannelMode == 0) {
           analogWrite(pinR, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel)]);
-          analogWrite(pinG, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel+1)]);
-          analogWrite(pinB, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel+2)]);
+          analogWrite(pinG, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel + 1)]);
+          analogWrite(pinB, ledCurve8bit[artnetnode.returnDMXValue(0, firstChannel + 2)]);
         }
         else if (ledChannelMode == 1) {
           uint32_t factor = 255;
-          analogWrite(pinR, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
-          analogWrite(pinG, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel+1)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
-          analogWrite(pinB, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel+2)*factor)/255)*(uint32_t)artnetnode.returnDMXValue(0, firstChannel+3))/factor]);
+          analogWrite(pinR, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel)*factor) / 255) * (uint32_t)artnetnode.returnDMXValue(0, firstChannel + 3)) / factor]);
+          analogWrite(pinG, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel + 1)*factor) / 255) * (uint32_t)artnetnode.returnDMXValue(0, firstChannel + 3)) / factor]);
+          analogWrite(pinB, ledCurve8bit[((((uint32_t)artnetnode.returnDMXValue(0, firstChannel + 2)*factor) / 255) * (uint32_t)artnetnode.returnDMXValue(0, firstChannel + 3)) / factor]);
         }
         else if (ledChannelMode == 2) {
-          analogWrite(pinR, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel)<<8) | artnetnode.returnDMXValue(0, firstChannel+1))/64));
-          analogWrite(pinG, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+2)<<8) | artnetnode.returnDMXValue(0, firstChannel+3))/64));
-          analogWrite(pinB, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+4)<<8) | artnetnode.returnDMXValue(0, firstChannel+5))/64));
+          analogWrite(pinR, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel) << 8) | artnetnode.returnDMXValue(0, firstChannel + 1)) / 64));
+          analogWrite(pinG, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel + 2) << 8) | artnetnode.returnDMXValue(0, firstChannel + 3)) / 64));
+          analogWrite(pinB, ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel + 4) << 8) | artnetnode.returnDMXValue(0, firstChannel + 5)) / 64));
         }
         else if (ledChannelMode == 3) {
-          uint32_t rdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel)<<8) | artnetnode.returnDMXValue(0, firstChannel+1))/64);
-          uint32_t gdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+2)<<8) | artnetnode.returnDMXValue(0, firstChannel+3))/64);
-          uint32_t bdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+4)<<8) | artnetnode.returnDMXValue(0, firstChannel+5))/64);
-          uint32_t dim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel+6)<<8) | artnetnode.returnDMXValue(0, firstChannel+7))/64);
+          uint32_t rdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel) << 8) | artnetnode.returnDMXValue(0, firstChannel + 1)) / 64);
+          uint32_t gdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel + 2) << 8) | artnetnode.returnDMXValue(0, firstChannel + 3)) / 64);
+          uint32_t bdim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel + 4) << 8) | artnetnode.returnDMXValue(0, firstChannel + 5)) / 64);
+          uint32_t dim = ((uint16_t)((artnetnode.returnDMXValue(0, firstChannel + 6) << 8) | artnetnode.returnDMXValue(0, firstChannel + 7)) / 64);
           uint32_t factor = 1023;
-          analogWrite(pinR, (((rdim*factor)/1023)*dim)/factor);
-          analogWrite(pinG, (((gdim*factor)/1023)*dim)/factor);
-          analogWrite(pinB, (((bdim*factor)/1023)*dim)/factor);
+          analogWrite(pinR, (((rdim * factor) / 1023)*dim) / factor);
+          analogWrite(pinG, (((gdim * factor) / 1023)*dim) / factor);
+          analogWrite(pinB, (((bdim * factor) / 1023)*dim) / factor);
         }
       }
       else {
