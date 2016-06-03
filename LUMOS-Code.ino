@@ -164,7 +164,9 @@ void setup()
     page.replace("{v}", "Lumos");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<br/><div class=\"c\">LUMOS Config and Control</div><br/>";
+    page += "<br/><div class=\"c\">LUMOS Config and Control</div>";
+    page += "<div class=\"c\">\"{n}\"</div><br/>";
+    page.replace("{n}", nodeName);
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -190,6 +192,11 @@ void setup()
     page.replace("{v}", "Lumos - Settings");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "<< Back");
+
+    page += "<br/><div class=\"c\">Node Settings</div><br/>";
     page += FPSTR(HTTP_FORM_START_GENERIC);
     page.replace("{t}", "GET");
     page.replace("{a}", "/settingsSave");
