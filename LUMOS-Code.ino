@@ -494,43 +494,43 @@ void setup()
       clearStrip();
     }
 
-    if (server.hasArg("nodeName")){
+    if (server.hasArg("nodeName") && (server.arg("nodeName") != "")){
       nodeName = server.arg("nodeName");
     }
-    if (server.hasArg("hwVersion")){
+    if (server.hasArg("hwVersion") && (server.arg("hwVersion") != "")){
       hwVersion = server.arg("hwVersion");
     }
-    if (server.hasArg("swVersion")){
+    if (server.hasArg("swVersion") && (server.arg("swVersion") != "")){
       swVersion = server.arg("swVersion");
     }
-    if (server.hasArg("pinR")){
+    if (server.hasArg("pinR") && (server.arg("pinR") != "")){
       pinR = server.arg("pinR").toInt();
     }
-    if (server.hasArg("pinG")){
+    if (server.hasArg("pinG") && (server.arg("pinG") != "")){
       pinG = server.arg("pinG").toInt();
     }
-    if (server.hasArg("pinB")){
+    if (server.hasArg("pinB") && (server.arg("pinB") != "")){
       pinB = server.arg("pinB").toInt();
     }
-    if (server.hasArg("onboardNeopixelPin")){
+    if (server.hasArg("onboardNeopixelPin") && (server.arg("onboardNeopixelPin") != "")){
       onboardNeopixelPin = server.arg("onboardNeopixelPin").toInt();
     }
-    if (server.hasArg("btnPin")){
+    if (server.hasArg("btnPin") && (server.arg("btnPin") != "")){
       btnPin = server.arg("btnPin").toInt();
     }
-    if (server.hasArg("minLEDVoltage")){
+    if (server.hasArg("minLEDVoltage") && (server.arg("minLEDVoltage") != "")){
       minLEDVoltage = server.arg("minLEDVoltage").toInt();
     }
-    if (server.hasArg("minSelfVoltage")){
+    if (server.hasArg("minSelfVoltage") && (server.arg("minSelfVoltage") != "")){
       minSelfVoltage = server.arg("minSelfVoltage").toInt();
     }
-    if (server.hasArg("www_username")){
+    if (server.hasArg("www_username") && (server.arg("www_username") != "")){
       www_username = server.arg("www_username");
     }
-    if (server.hasArg("www_password")){
+    if (server.hasArg("www_password") && (server.arg("www_password") != "")){
       www_password = server.arg("www_password");
     }
-    if (server.hasArg("ledOutputMode")){
+    if (server.hasArg("ledOutputMode") && (server.arg("ledOutputMode") != "")){
       if (server.arg("ledOutputMode") == "true") {
         ledOutputMode = true;
       }
@@ -538,19 +538,19 @@ void setup()
         ledOutputMode = false;
       }
     }
-    if (server.hasArg("stripLength")){
+    if (server.hasArg("stripLength") && (server.arg("stripLength") != "")){
       stripLength = server.arg("stripLength").toInt();
     }
-    if (server.hasArg("stripPin")){
+    if (server.hasArg("stripPin") && (server.arg("stripPin") != "")){
       stripPin = server.arg("stripPin").toInt();
     }
-    if (server.hasArg("serverIP")){
+    if (server.hasArg("serverIP") && (server.arg("serverIP") != "")){
       serverIP.fromString(server.arg("serverIP"));
     }
-    if (server.hasArg("serverName")){
+    if (server.hasArg("serverName") && (server.arg("serverName") != "")){
       serverName = server.arg("serverName");
     }
-    if (server.hasArg("tryServerDNS")){
+    if (server.hasArg("tryServerDNS") && (server.arg("tryServerDNS") != "")){
       if (server.arg("tryServerDNS") == "true") {
         tryServerDNS = true;
       }
@@ -558,16 +558,16 @@ void setup()
         tryServerDNS = false;
       }
     }
-    if (server.hasArg("ledChannelMode")){
+    if (server.hasArg("ledChannelMode") && (server.arg("ledChannelMode") != "")){
       ledChannelMode = server.arg("ledChannelMode").toInt();
     }
-    if (server.hasArg("firstChannel")){
+    if (server.hasArg("firstChannel") && (server.arg("firstChannel") != "")){
       firstChannel = server.arg("firstChannel").toInt();
     }
-    if (server.hasArg("universe")){
+    if (server.hasArg("universe") && (server.arg("universe") != "")){
       universe = server.arg("universe").toInt();
     }
-    if (server.hasArg("allowBroadcastDMX")){
+    if (server.hasArg("allowBroadcastDMX") && (server.arg("allowBroadcastDMX") != "")){
       if (server.arg("allowBroadcastDMX") == "true") {
         allowBroadcastDMX = true;
       }
