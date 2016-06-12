@@ -164,9 +164,9 @@ void setup()
     page.replace("{v}", "Lumos");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<br/><div class=\"c\">LUMOS Config and Control</div>";
-    page += "<div class=\"c\">\"{n}\"</div><br/>";
+    page += "<div class=\"c\">\"{n}\"</div>";
     page.replace("{n}", nodeName);
+    page += "<div class=\"c\">LUMOS Config and Control</div>";
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -192,6 +192,8 @@ void setup()
     page.replace("{v}", "Lumos - Settings");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
+    page += "<div class=\"c\">\"{n}\"</div>";
+    page.replace("{n}", nodeName);
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "<< Back");
@@ -584,16 +586,18 @@ void setup()
     page.replace("{v}", "Lumos - Settings Saved");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<br/><div class=\"c\">Settings Saved...</div><br/>";
+    page += "<div class=\"c\">\"{n}\"</div>";
+    page.replace("{n}", nodeName);
+    page += "<div class=\"c\">Settings Saved...</div>";
+    page += FPSTR(HTTP_LINK);
+    page.replace("{a}", "/");
+    page.replace("{n}", "Home");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/settings");
     page.replace("{n}", "Return to Settings");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/reset");
     page.replace("{n}", "Reset");
-    page += FPSTR(HTTP_LINK);
-    page.replace("{a}", "/");
-    page.replace("{n}", "Home");
     page += FPSTR(HTTP_END);
     
     server.send(200, "text/html", page);
@@ -607,7 +611,9 @@ void setup()
     page.replace("{v}", "Lumos - Resetting");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<br/><div class=\"c\">Resetting 30 seconds...</div><br/>";
+    page += "<div class=\"c\">\"{n}\"</div>";
+    page.replace("{n}", nodeName);
+    page += "<div class=\"c\">Resetting 30 seconds...</div>";
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -625,7 +631,9 @@ void setup()
     page.replace("{v}", "Lumos - Find Me");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<br/><div class=\"c\">Flashing Status LED</div><br/>";
+    page += "<div class=\"c\">\"{n}\"</div>";
+    page.replace("{n}", nodeName);
+    page += "<div class=\"c\">Flashing Status LED</div>";
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
