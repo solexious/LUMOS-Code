@@ -3,13 +3,14 @@
 
 String nodeName = "DEFAULT";
 String hwVersion = "0.2";
-String swVersion = "0.2";
+String swVersion = "0.4";
 int pinR = 15;
 int pinG = 5;
 int pinB = 4;
 int onboardNeopixelPin = 13;
 int btnPin = 16;
-int minLEDVoltage = 775;
+int minLEDVoltage = 745;
+int maxVoltage = 900;
 int minSelfVoltage = 725;
 String www_username = "admin";
 String www_password = "esp8266";

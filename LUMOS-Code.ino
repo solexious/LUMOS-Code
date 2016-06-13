@@ -275,6 +275,15 @@ void setup()
     page.replace("{c}", "");
     page.replace("{l}", "''");
 
+    page += "<br/><br/>Max Voltage:";
+    page += FPSTR(HTTP_FORM_PARAM);
+    page.replace("{i}", "maxVoltage");
+    page.replace("{n}", "maxVoltage");
+    page.replace("{p}", (String)maxVoltage);
+    page.replace("{v}", (String)maxVoltage);
+    page.replace("{c}", "");
+    page.replace("{l}", "''");
+
     page += "<br/><br/>Min LED Voltage:";
     page += FPSTR(HTTP_FORM_PARAM);
     page.replace("{i}", "minLEDVoltage");
@@ -520,6 +529,9 @@ void setup()
     if (server.hasArg("btnPin") && (server.arg("btnPin") != "")){
       btnPin = server.arg("btnPin").toInt();
     }
+    if (server.hasArg("maxVoltage") && (server.arg("maxVoltage") != "")){
+      minLEDVoltage = server.arg("maxVoltage").toInt();
+    }
     if (server.hasArg("minLEDVoltage") && (server.arg("minLEDVoltage") != "")){
       minLEDVoltage = server.arg("minLEDVoltage").toInt();
     }
@@ -621,6 +633,24 @@ void setup()
     
     server.send(200, "text/html", page);
     ESP.reset();
+  });
+  server.on("/shutdown", []() {
+    if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
+      return server.requestAuthentication();
+    }
+
+    String page = FPSTR(HTTP_HEAD);
+    page.replace("{v}", "Lumos - Shutting Down");
+    page += FPSTR(HTTP_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += "<div class=\"c\">\"{n}\"</div>";
+    page.replace("{n}", nodeName);
+    page += "<div class=\"c\">Shutting down...</div>";
+    page += "<div class=\"c\">Physical reset needed to wake</div>";
+    page += FPSTR(HTTP_END);
+    
+    server.send(200, "text/html", page);
+    ESP.deepSleep(0);
   });
   server.on("/findme", []() {
     if (!server.authenticate(www_username.c_str(), www_password.c_str())) {
@@ -912,6 +942,7 @@ bool getConfigJSON() {
     pinB = configJSONroot["pinB"];
     onboardNeopixelPin = configJSONroot["onboardNeopixelPin"];
     btnPin = configJSONroot["btnPin"];
+    maxVoltage = configJSONroot["maxVoltage"];
     minLEDVoltage = configJSONroot["minLEDVoltage"];
     minSelfVoltage = configJSONroot["minSelfVoltage"];
     const char* www_usernameConst = configJSONroot["www_username"];
@@ -955,6 +986,7 @@ void defaultConfigJSON() {
   root["pinB"] = pinB;
   root["onboardNeopixelPin"] = onboardNeopixelPin;
   root["btnPin"] = btnPin;
+  root["maxVoltage"] = maxVoltage;
   root["minLEDVoltage"] = minLEDVoltage;
   root["minSelfVoltage"] = minSelfVoltage;
   root["www_username"] = (const char*)www_username.c_str();
