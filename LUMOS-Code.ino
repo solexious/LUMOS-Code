@@ -164,9 +164,10 @@ void setup()
     page.replace("{v}", "Lumos");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
-    page += "<div class=\"c\">LUMOS Config and Control</div>";
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "LUMOS Config and Control");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -192,18 +193,19 @@ void setup()
     page.replace("{v}", "Lumos - Settings");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Node Settings");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "<< Back");
 
-    page += "<br/><div class=\"c\">Node Settings</div><br/>";
     page += FPSTR(HTTP_FORM_START_GENERIC);
     page.replace("{t}", "GET");
     page.replace("{a}", "/settingsSave");
 
-    page += "Node Name:";
+    page += "<br/>Node Name:";
     page += FPSTR(HTTP_FORM_PARAM);
     page.replace("{i}", "nodeName");
     page.replace("{n}", "nodeName");
@@ -598,9 +600,10 @@ void setup()
     page.replace("{v}", "Lumos - Settings Saved");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
-    page += "<div class=\"c\">Settings Saved...</div>";
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Settings Saved...");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -623,9 +626,10 @@ void setup()
     page.replace("{v}", "Lumos - Resetting");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
-    page += "<div class=\"c\">Resetting 30 seconds...</div>";
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Resetting 30 seconds...");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
@@ -643,10 +647,12 @@ void setup()
     page.replace("{v}", "Lumos - Shutting Down");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
-    page += "<div class=\"c\">Shutting down...</div>";
-    page += "<div class=\"c\">Physical reset needed to wake</div>";
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Shutting down...");
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Physical reset needed to wake");
     page += FPSTR(HTTP_END);
     
     server.send(200, "text/html", page);
@@ -661,9 +667,10 @@ void setup()
     page.replace("{v}", "Lumos - Find Me");
     page += FPSTR(HTTP_STYLE);
     page += FPSTR(HTTP_HEAD_END);
-    page += "<div class=\"c\">\"{n}\"</div>";
+    page += FPSTR(HTTP_TEXT);
     page.replace("{n}", nodeName);
-    page += "<div class=\"c\">Flashing Status LED</div>";
+    page += FPSTR(HTTP_TEXT);
+    page.replace("{n}", "Flashing Status LED");
     page += FPSTR(HTTP_LINK);
     page.replace("{a}", "/");
     page.replace("{n}", "Home");
